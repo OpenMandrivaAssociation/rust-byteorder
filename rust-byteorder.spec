@@ -5,7 +5,7 @@
 
 Name:           rust-%{crate}
 Version:        1.4.3
-Release:        1
+Release:        2
 Summary:        Library for reading/writing numbers in big-endian and little-endian
 
 # Upstream license specification: Unlicense OR MIT
