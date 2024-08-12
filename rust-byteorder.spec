@@ -1,30 +1,30 @@
-%bcond_without check
+# Rust packages always list license files and docs
+# inside the crate as well as the containing directory
+%undefine _duplicate_files_terminate_build
+# Avoid dependency on way too old version of quickcheck
+%bcond_with check
 %global debug_package %{nil}
 
 %global crate byteorder
 
-Name:           rust-%{crate}
-Version:        1.4.3
-Release:        2
+Name:           rust-byteorder
+Version:        1.5.0
+Release:        1
 Summary:        Library for reading/writing numbers in big-endian and little-endian
+Group:          Development/Rust
 
-# Upstream license specification: Unlicense OR MIT
-License:        Unlicense or MIT
+License:        Unlicense OR MIT
 URL:            https://crates.io/crates/byteorder
 Source:         %{crates_source}
-# Drop dependencies on rust-rand and rust-quickcheck
-# to avoid circular dependencies (both of those packages
-# require rust-byteorder).
-# Fortunately this only means cutting down on
-# tests and benchmarks.
-Patch0:		byteorder-1.4.3-drop-circular-deps.patch
 
 ExclusiveArch:  %{rust_arches}
-%if %{__cargo_skip_build}
-BuildArch:      noarch
-%endif
 
-BuildRequires:  rust-packaging
+BuildRequires:  cargo-rpm-macros >= 24
+BuildRequires:  rust >= 1.60
+%if %{with check}
+BuildRequires:  (crate(quickcheck) >= 0.9.2 with crate(quickcheck) < 0.10.0~)
+BuildRequires:  (crate(rand/default) >= 0.7.0 with crate(rand/default) < 0.8.0~)
+%endif
 
 %global _description %{expand:
 Library for reading/writing numbers in big-endian and little-endian.}
@@ -33,60 +33,77 @@ Library for reading/writing numbers in big-endian and little-endian.}
 
 %package        devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(byteorder) = 1.5.0
+Requires:       cargo
+Requires:       rust >= 1.60
 
 %description    devel %{_description}
 
-This package contains library source intended for building other packages
-which use "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "%{crate}" crate.
 
 %files          devel
-%license COPYING UNLICENSE LICENSE-MIT
-%doc README.md CHANGELOG.md
-%{cargo_registry}/%{crate}-%{version_no_tilde}/
+%license %{crate_instdir}/COPYING
+%license %{crate_instdir}/LICENSE-MIT
+%license %{crate_instdir}/UNLICENSE
+%doc %{crate_instdir}/CHANGELOG.md
+%doc %{crate_instdir}/README.md
+%{crate_instdir}/
 
 %package     -n %{name}+default-devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(byteorder/default) = 1.5.0
+Requires:       cargo
+Requires:       crate(byteorder) = 1.5.0
+Requires:       crate(byteorder/std) = 1.5.0
 
 %description -n %{name}+default-devel %{_description}
 
-This package contains library source intended for building other packages
-which use "default" feature of "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "default" feature of the "%{crate}" crate.
 
 %files       -n %{name}+default-devel
-%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+%ghost %{crate_instdir}/Cargo.toml
 
 %package     -n %{name}+i128-devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(byteorder/i128) = 1.5.0
+Requires:       cargo
+Requires:       crate(byteorder) = 1.5.0
 
 %description -n %{name}+i128-devel %{_description}
 
-This package contains library source intended for building other packages
-which use "i128" feature of "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "i128" feature of the "%{crate}" crate.
 
 %files       -n %{name}+i128-devel
-%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+%ghost %{crate_instdir}/Cargo.toml
 
 %package     -n %{name}+std-devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(byteorder/std) = 1.5.0
+Requires:       cargo
+Requires:       crate(byteorder) = 1.5.0
 
 %description -n %{name}+std-devel %{_description}
 
-This package contains library source intended for building other packages
-which use "std" feature of "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "std" feature of the "%{crate}" crate.
 
 %files       -n %{name}+std-devel
-%ghost %{cargo_registry}/%{crate}-%{version_no_tilde}/Cargo.toml
+%ghost %{crate_instdir}/Cargo.toml
 
 %prep
-%autosetup -n %{crate}-%{version_no_tilde} -p1
+%autosetup -n %{crate}-%{version} -p1
 %cargo_prep
-
-%generate_buildrequires
-%cargo_generate_buildrequires
 
 %build
 %cargo_build
